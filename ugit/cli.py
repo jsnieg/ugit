@@ -13,7 +13,6 @@ def main() -> None:
 def parse_args():
     """
     """
-
     # Parser to pass command string lines to Python object
     parser: ArgumentParser = argparse.ArgumentParser()
 
