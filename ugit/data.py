@@ -13,16 +13,24 @@ def init() -> None:
         print('Target directory already exists.')
         return
 
-def hash_object(data) -> str:
+def hash_object(data, type_='blob') -> str:
     """
     """
+    obj = type_.encode() + b'\x00' + data
     # Create a hash of the content of a file using SHA-1
-    oid: str = hashlib.sha1(data).hexdigest()
+    oid: str = hashlib.sha1(obj).hexdigest()
     # Store the file under a related hash
     with open(f'{GIT_DIR}/objects/{oid}', 'wb') as out:
-        out.write(data)
+        out.write(obj)
     return oid
 
-def get_object(oid: str) -> bytes:
+def get_object(oid: str, expected='blob') -> bytes:
     with open(f'{GIT_DIR}/objects/{oid}', 'rb') as f:
-        return f.read()
+        obj = f.read()
+    
+    type_, _, content = obj.partition(b'\x00')
+    type_ = type_.decode()
+
+    if expected is not None:
+        assert type_ == expected, f'Expected {expected}, got {type_}'
+    return content
