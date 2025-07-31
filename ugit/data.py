@@ -25,6 +25,10 @@ def hash_object(data, type_='blob') -> str:
         out.write(obj)
     return oid
 
+def set_HEAD(oid):
+    with open(f'{GIT_DIR}/HEAD', 'w') as f:
+        f.write(oid)
+
 def get_object(oid: str, expected='blob') -> bytes:
     """
     Return object of the repository created.
