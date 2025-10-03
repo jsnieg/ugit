@@ -1,4 +1,8 @@
+import itertools
+import operator
 import os
+
+from collections import namedtuple
 
 from . import data
 
@@ -47,13 +51,62 @@ def get_tree(oid, base_path: str=''):
             assert False, f'Unknown tree entry {type_}'
     return result
 
+def _empty_current_directory():
+    for root, dirnames, filenames in os.walk('.', topdown=False):
+        for filename in filenames:
+            path = os.path.relpath(f'{root}/{filename}')
+            if is_ignored(path) or not os.path.isfile(path):
+                continue
+            os.remove(path)
+        for dirname in dirnames:
+            path = os.path.relpath(f'{root}/{dirname}')
+            if is_ignored(path):
+                continue
+            try:
+                os.rmdir(path)
+            except(FileNotFoundError, OSError):
+                # Deletion might fail if the directory contains ignored files,
+                # so it's OK
+                pass
+
 def read_tree(tree_oid):
+    _empty_current_directory()
     for path, oid in get_tree(tree_oid, base_path='./').items():
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as f:
             f.write(data.get_object(oid))
 
-def is_ignored(path):
+def commit(message) -> str:
+    commit = f'tree {write_tree()}\n'
+    commit += '\n'
+    commit += f'{message}\n'
+    oid = data.hash_object(commit.encode(), 'commit')
+    data.set_HEAD(oid)
+    return oid
+
+Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
+
+def get_commit(oid: str):
+    """
+    Parse a commit object by its OID.
+    """
+    parent = None
+    commit = data.get_object(oid, 'commit').decode()
+    lines = iter(commit.splitlines())
+
+    for line in itertools.takewhile(operator.truth, lines):
+        key, value = line.split(' ', 1)
+        if key == 'tree':
+            tree = value
+        elif key == 'parent':
+            parent = value
+        else:
+            assert False, f'Unknown field {key}'
+
+    message = '\n'.join(lines)
+    return Commit(tree=tree, parent=parent, message=message)
+
+def is_ignored(path) -> bool:
     """
     Ignore the path if exists.
     """

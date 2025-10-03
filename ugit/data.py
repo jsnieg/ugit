@@ -13,6 +13,15 @@ def init() -> None:
         print('Target directory already exists.')
         return
 
+def set_HEAD(oid) -> None:
+    with open(f'{GIT_DIR}/HEAD', 'w') as f:
+        f.write(oid)
+
+def get_HEAD() -> str | None:
+    if os.path.isfile(f'{GIT_DIR}/HEAD'):
+        with open(f'{GIT_DIR}/HEAD') as f:
+            return f.read().strip()
+
 def hash_object(data, type_='blob') -> str:
     """
     Hashes the object to allow it be unique.
