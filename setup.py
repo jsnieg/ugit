@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from setuptools import setup
 
-setup(name='ugit-python',
+setup(name='ugit',
        version='0.1',
        packages=['ugit'],
        entry_points={
