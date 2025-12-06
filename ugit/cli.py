@@ -3,6 +3,7 @@
 # Imports
 import argparse
 import os
+import subprocess
 import sys
 import textwrap
 
@@ -118,20 +119,28 @@ def k(args) -> None:
 
     Usage: ugit k
 
-    reference: (#k: Print refs)
+    reference: (#k: Print refs, Render graph)
     """
+    dot = 'digraph commits {\n'
     oids = set()
     # iter_refs is a generator iterating on all available  refs
     # it will return HEAD from the ugit root directory
     # and everything under .ugit/refs.
     for refName, ref in data.iter_refs():
-        print(refName, ref)
+        dot += f'"{refName}" [shape=note]\n'
+        dof += f'"{refName}" -> "{ref}"\n'
         oids.add(ref)
 
     for oid in base.iter_commits_and_parents(oids):
         commit = base.get_commit(oid)
-        print(oid)
+        dot += f'"{oid}" [shape=box style=filled label={oid[:10]}]\n'
         if commit.parent:
-            print('Parent', commit.parent)
+            dot += f'"{oid}" -> "{commit.parent}"\n'
             
-    # TODO visualise refs
+    dot += '}'
+    print(dot)
+
+    with subprocess.Popen(
+        ['dot', '-Tgtk', '/dev/stdin'],
+        stdin=subprocess.PIPE) as proc:
+        proc.communicate (dot.encode())
