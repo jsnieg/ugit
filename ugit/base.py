@@ -1,8 +1,10 @@
 import itertools
 import operator
 import os
+import string
 
 from collections import namedtuple
+from typing import Generator, Any
 
 from . import data
 
@@ -117,8 +119,53 @@ def get_commit(oid: str):
     message = '\n'.join(lines)
     return Commit(tree=tree, parent=parent, message=message)
 
+def iter_commits_and_parents(oids) -> Generator[Any]:
+    """
+    Printing all OIDs reachable from references. This is a generator that returns all commits that it can reach from a given set of OIDs.
+
+    Following the parents of tag1 or by following the parents of tag2 we can reach the first commit.
+
+    o<----o<----o<----o<----@<----@<----@
+    ^                  \                ^
+    first commit        -<--$<----$     refs/tags/tag1
+                                    ^
+                                    refs/tags/tag2
+    """
+    oids = set(oids)
+    visited = set()
+
+    while oids:
+        oid = oids.pop()
+        if not oid or oid in visited:
+            continue
+        visited.add(oid)
+        yield oid
+
+        commit = get_commit(oid)
+        oids.add(commit.parent)
+
 def get_oid(name):
-    return data.get_ref(name) or name
+    if name == '@': 
+        name = 'HEAD'
+
+    # Name is ref
+    refs_to_try = [
+        f'{name}',
+        f'refs/{name}',
+        f'refs/tags/{name}',
+        f'refs/heads/{name}'
+    ]
+
+    for ref in refs_to_try:
+        if data.get_ref(ref):
+            return data.get_ref(ref)
+    
+    # Name is SHA1
+    is_hex = all(c in string.hexdigits for c in name)
+    if len(name) == 40 and is_hex:
+        return name
+    
+    assert False, f'Unknown name {name}'
 
 def is_ignored(path) -> bool:
     """

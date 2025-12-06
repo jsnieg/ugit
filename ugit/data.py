@@ -1,3 +1,4 @@
+from typing import Generator, Any
 import hashlib
 import os
 
@@ -24,6 +25,18 @@ def get_ref(ref) -> str | None:
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
             return f.read().strip()
+        
+def iter_refs() -> Generator[Any, Any, Any]:
+    # iter_refs is a generator iterating on all available refs
+    # it will return HEAD from the ugit root directory
+    # and everything under .ugit/refs.
+    # _ here is a throwoaway variable, only root and filenames are required
+    refs = ['HEAD']
+    for root, _, filenames in os.walk(f'{GIT_DIR}/refs/'):
+        root = os.path.relpath(root, GIT_DIR)
+        refs.extend(f'{root}/{name}' for name in filenames)
+    for refname in refs:
+        yield refname, get_ref(refname)
 
 def hash_object(data, type_='blob') -> str:
     """
