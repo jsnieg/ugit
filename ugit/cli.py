@@ -67,6 +67,9 @@ def parse_args():
     tag_parser.add_argument('name')
     tag_parser.add_argument('oid', default='@', type=oid, nargs='?')
 
+    k_parser = commands.add_parser('k')
+    k_parser.set_defaults(func=k)
+
     return parser.parse_args()
 
 def init(args) -> None:
@@ -108,3 +111,27 @@ def checkout(args):
 
 def tag(args):
     base.create_tag(args.name, args.oid)
+
+def k(args) -> None:
+    """
+    Similar function to gitk which is a graphical visualization tool for Git.
+
+    Usage: ugit k
+
+    reference: (#k: Print refs)
+    """
+    oids = set()
+    # iter_refs is a generator iterating on all available  refs
+    # it will return HEAD from the ugit root directory
+    # and everything under .ugit/refs.
+    for refName, ref in data.iter_refs():
+        print(refName, ref)
+        oids.add(ref)
+
+    for oid in base.iter_commits_and_parents(oids):
+        commit = base.get_commit(oid)
+        print(oid)
+        if commit.parent:
+            print('Parent', commit.parent)
+            
+    # TODO visualise refs
