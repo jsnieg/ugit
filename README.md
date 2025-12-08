@@ -10,6 +10,16 @@ Point of this project is to understand structure of **Git** under the hood but a
 
 ## Create Virtual Env
 
+May need admin priviliges to create a virtual environment, without this it causes issues.
+
 `sudo python3 -m venv/env`
 
+To run the virtual environment:
+
 `source venv/bin/activate`
+
+Install ugit:
+
+`python3 setup.py developer`
+
+> I'm aware that `setup` is deprecated. As a challenge may look into automating everything including creating virtual env for a user that clones/forks this. Keep in mind this follows a tutorial too!
