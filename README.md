@@ -7,3 +7,9 @@ Point of this project is to understand structure of **Git** under the hood but a
 2. When done run `ugit init`.
 
 3. Or if you're on Windows navigate to `C:\Users\<USER>\AppData\Roaming\Python\Python313\Scripts` and run `./ugit.exe --[command]`
+
+## Create Virtual Env
+
+`sudo python3 -m venv/env`
+
+`source venv/bin/activate`

@@ -3,9 +3,9 @@
 from setuptools import setup
 
 setup(name='ugit',
-       version='0.1',
+       version='1.0',
        packages=['ugit'],
-       entry_points={
+       entry_points = {
            'console_scripts' : [
                'ugit = ugit.cli:main'
            ]
