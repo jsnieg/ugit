@@ -119,7 +119,7 @@ def get_commit(oid: str):
     message = '\n'.join(lines)
     return Commit(tree=tree, parent=parent, message=message)
 
-def iter_commits_and_parents(oids) -> Generator[Any]:
+def iter_commits_and_parents(oids) -> Generator[Any, Any, Any]:
     """
     Printing all OIDs reachable from references. This is a generator that returns all commits that it can reach from a given set of OIDs.
 
