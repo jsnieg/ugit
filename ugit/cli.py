@@ -7,6 +7,7 @@ import subprocess
 import sys
 import textwrap
 
+
 # Local
 from . import base
 from . import data
@@ -128,7 +129,7 @@ def k(args) -> None:
     # and everything under .ugit/refs.
     for refName, ref in data.iter_refs():
         dot += f'"{refName}" [shape=note]\n'
-        dof += f'"{refName}" -> "{ref}"\n'
+        dot += f'"{refName}" -> "{ref}"\n'
         oids.add(ref)
 
     for oid in base.iter_commits_and_parents(oids):
