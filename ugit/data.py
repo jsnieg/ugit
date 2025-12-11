@@ -1,3 +1,5 @@
+# data.py -> Manages the data in .ugit directory. Here will be the code that actually touches files on-disk.
+
 from typing import Generator, Any
 import hashlib
 import os
@@ -7,7 +9,11 @@ from typing import Literal
 GIT_DIR : Literal['str'] = '.ugit'
 
 def init() -> None:
+    """
+    Initialises a .ugit directory for empty repository as specified by GIT_DIR above.\n
+    """
     try:
+        # Similar to mkdir but makedirs throws OSError if directory exists.
         os.makedirs(GIT_DIR)
         os.makedirs(f'{GIT_DIR}/objects')
     except OSError:

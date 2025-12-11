@@ -1,4 +1,4 @@
-#https://www.leshenko.net/p/ugit/#
+# cli.py -> In charge of parsing and processing user input.
 
 # Imports
 import argparse
@@ -6,7 +6,6 @@ import os
 import subprocess
 import sys
 import textwrap
-
 
 # Local
 from . import base
@@ -23,6 +22,7 @@ def main() -> None:
 
 def parse_args():
     """
+    Python's built-in argument parser 'argparse' implementing sub-commands in CLI.
     """
     # Parser to pass command string lines to Python object
     parser: ArgumentParser = argparse.ArgumentParser()
@@ -32,6 +32,7 @@ def parse_args():
 
     oid: str = base.get_oid
 
+    # Example:
     # Create a new 'init' command
     init_parser = commands.add_parser('init')
     # Assign function to it
@@ -86,6 +87,25 @@ def init(args) -> None:
     print(f'Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}')
 
 def hash_object(args):
+    """
+    `Hash function`_ creates a mapping from an input key to an index in hash table.\n
+
+    In .git language this feature is "the object database", allowing us to store and retrieve arbitary blobs which are called "objects". Thus, we use hashes (although not guaranteed to be unique) but in this scenario they do their job.\n
+
+    `Content-addressable storage has nice properties when synchronizing data between different computers - if two repositories have an object with the same OID we can be sure that they are the same object.`\n
+
+    Two different objects with basically different OIDs we won't have naming clashes between objects.\n
+
+    `.git does extra work not like .ugit. Compressing and diving objects to 256 directories, as having repos with huge number of files can hurt performance. .ugit does not do this.`\n
+
+    Flow of the command:\n
+    1. Get the path of the file to store.\n
+    2. Read the file.\n
+    3. Hash the content of the file using SHA-1.\n
+    4. Store the file under ".ugit/objects/{the SHA-1 hash}".
+
+    .. _Hash function: https://www.geeksforgeeks.org/dsa/hash-functions-and-list-types-of-hash-functions/
+    """
     with open(args.file, 'rb') as f:
         print(data.hash_object(f.read()))
 

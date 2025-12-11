@@ -1,6 +1,6 @@
 # Introduction
 
-> [μgit](https://www.leshenko.net/p/ugit/#) is a small implementation of a Git-like version control system (VCS). It's top goal is simplicity and educational value.
+> [μgit](https://www.leshenko.net/p/ugit/#) is a small implementation of a Git-like version control system (VCS). It's top goal is simplicity and educational value. ugit is not exactly Git, but it shares the important ideas of Git. ugit is way shorter and doesn't implement irrelevant features.
 
 # Usage
 
