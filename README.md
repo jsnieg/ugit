@@ -1,14 +1,10 @@
-Python implementation of Git as specified in the tutorial [here](https://www.leshenko.net/p/ugit/#).
+# Introduction
 
-Point of this project is to understand structure of **Git** under the hood but also practice using various APIs, native libraries and of course Python.
+> [μgit](https://www.leshenko.net/p/ugit/#) is a small implementation of a Git-like version control system (VCS). It's top goal is simplicity and educational value.
 
-1. Run `python3 setup.py develop --user`.
+# Usage
 
-2. When done run `ugit init`.
-
-3. Or if you're on Windows navigate to `C:\Users\<USER>\AppData\Roaming\Python\Python313\Scripts` and run `./ugit.exe --[command]`
-
-## Create Virtual Env
+## Create Virtual Env (Linux/WSL)
 
 May need admin priviliges to create a virtual environment, without this it causes issues.
 
