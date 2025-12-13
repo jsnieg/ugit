@@ -110,6 +110,20 @@ def hash_object(args):
         print(data.hash_object(f.read()))
 
 def cat_file(args):
+    """
+    Prints an object by its OID.\n
+
+    Exampletory cycle:\n
+    $ cd /tmp/new\n
+    $ ugit init\n
+    > `Initialized empty ugit repository in /tmp/new/.ugit`\n
+    $ echo Hello, World! > bla\n
+    $ ugit hash-object bla\n
+    > `0e08b5e8c10abc3e455b75286ba4a1fbd56e18a5`\n
+    $ ugit cat-file 0e08b5e8c10abc3e455b75286ba4a1fbd56e18a5\n
+    > `Hello, World!`\n
+    """
+    # https://stackoverflow.com/questions/10019456/usage-of-sys-stdout-flush-method
     sys.stdout.flush()
     sys.stdout.buffer.write(data.get_object(args.object, expected=None))
 
