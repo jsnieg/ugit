@@ -1,14 +1,18 @@
 import itertools
 import operator
 import os
+import string
 
-from collections import namedtuple
+from collections import deque, namedtuple
+from typing import Generator, Any, AnyStr
 
 from . import data
 
 def write_tree(directory='.') -> None:
     """
     Puts all files in the object database.
+
+    Using OID in order to retrieve the directory at a later time. "Tree" in .git means directory.
     """
     entries = []
     with os.scandir(directory) as it:
@@ -25,19 +29,25 @@ def write_tree(directory='.') -> None:
                 oid = write_tree(full)
             entries.append((entry.name, oid, type_))
     
-    tree = ''.join(f'{type_} {oid} {name}\n' for name, oid, type_ in sorted(entries))
+    tree: str = ''.join(f'{type_} {oid} {name}\n' for name, oid, type_ in sorted(entries))
 
     return data.hash_object(tree.encode(), 'tree')
 
-def _iter_tree_entries(oid):
+def _iter_tree_entries(oid) -> Generator[AnyStr, AnyStr, AnyStr]:
+    """
+    Generator that takes an OID of a tree, tokenizes it line-by-line and yield the raw string values.
+    """
     if not oid:
         return
-    tree = data.get_object(oid, 'tree')
+    tree: bytes = data.get_object(oid, 'tree')
     for entry in tree.decode().splitlines():
         type_, oid, name = entry.split(' ', 2)
         yield type_, oid, name
 
 def get_tree(oid, base_path: str=''):
+    """
+    get_tree uses _iter_tree_entries to recursively parse a tree into a dict.
+    """
     result = {}
     for type_, oid, name in _iter_tree_entries(oid):
         assert '/' not in name
@@ -78,22 +88,25 @@ def read_tree(tree_oid):
 
 def commit(message) -> str:
     commit = f'tree {write_tree()}\n'
-    HEAD = data.get_ref('HEAD')
+    HEAD = data.get_ref('HEAD').value
     if HEAD:
         commit += f'parent {HEAD}\n'
     commit += '\n'
     commit += f'{message}\n'
     oid = data.hash_object(commit.encode(), 'commit')
-    data.update_ref('HEAD', oid)
+    data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
     return oid
 
 def checkout(oid):
     commit = get_commit(oid)
     read_tree(commit.tree)
-    data.update_ref('HEAD', oid)
+    data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
 
 def create_tag(name, oid):
-    data.update_ref(f'refs/tags/{name}', oid)
+    data.update_ref(f'refs/tags/{name}', data.RefValue(symbolic=False, value=oid))
+
+def create_branch(name: str, oid: str) -> None:
+    data.update_ref(f'refs/heads/{name}', data.RefValue(symbolic=False, value=oid))
 
 Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
 
@@ -117,11 +130,50 @@ def get_commit(oid: str):
     message = '\n'.join(lines)
     return Commit(tree=tree, parent=parent, message=message)
 
+def iter_commits_and_parents(oids) -> Generator[Any, Any, Any]:
+    """
+    Printing all OIDs reachable from references. This is a generator that returns all commits that it can reach from a given set of OIDs.
+
+    Following the parents of tag1 or by following the parents of tag2 we can reach the first commit.
+    """
+    oids = deque(oids)
+    visited = set()
+
+    while oids:
+        oid = oids.popleft()
+        if not oid or oid in visited:
+            continue
+        visited.add(oid)
+        yield oid
+
+        commit = get_commit(oid)
+        oids.appendleft(commit.parent)
+
 def get_oid(name):
-    return data.get_ref(name) or name
+    if name == '@': 
+        name = 'HEAD'
+
+    # Name is ref
+    refs_to_try = [
+        f'{name}',
+        f'refs/{name}',
+        f'refs/tags/{name}',
+        f'refs/heads/{name}'
+    ]
+
+    for ref in refs_to_try:
+        if data.get_ref(ref).value:
+            return data.get_ref(ref).value
+    
+    # Name is SHA1
+    is_hex = all(c in string.hexdigits for c in name)
+    if len(name) == 40 and is_hex:
+        return name
+    
+    assert False, f'Unknown name {name}'
 
 def is_ignored(path) -> bool:
     """
-    Ignore the path if exists.
+    Ignore the .ugit directory if exists.
     """
     return '.ugit' in path.split('/')
