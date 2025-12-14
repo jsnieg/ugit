@@ -1,10 +1,11 @@
 # data.py -> Manages the data in .ugit directory. Here will be the code that actually touches files on-disk.
 
-from typing import Generator, Any
 import hashlib
 import os
 
+from typing import Generator, Any
 from typing import Literal
+from collections import namedtuple
 
 GIT_DIR : Literal['str'] = '.ugit'
 
@@ -13,6 +14,7 @@ def init() -> None:
     Initialises a .ugit directory for empty repository as specified by GIT_DIR above.\n
     """
     try:
+        
         # Similar to mkdir but makedirs throws OSError if directory exists.
         os.makedirs(GIT_DIR)
         os.makedirs(f'{GIT_DIR}/objects')
@@ -20,18 +22,27 @@ def init() -> None:
         print('Target directory already exists.')
         return
 
-def update_ref(ref, oid) -> None:
+RefValue = namedtuple('RefValue', ['symoblic', 'value'])
+
+def update_ref(ref, value) -> None:
+    assert not value.symbolic
     ref_path: str = f'{GIT_DIR}/{ref}'
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, 'w') as f:
-        f.write(oid)
+        f.write(value.value)
 
 def get_ref(ref) -> str | None:
     ref_path = f'{GIT_DIR}/{ref}'
+    value = None
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
-            return f.read().strip()
+            value: str = f.read().strip()
         
+    if value and value.startswith('ref:'):
+        return get_ref(value.split(':', 1)[1].strip())
+        
+    return RefValue(symbolic=False, value=value)
+    
 def iter_refs() -> Generator[Any, Any, Any]:
     # iter_refs is a generator iterating on all available refs
     # it will return HEAD from the ugit root directory

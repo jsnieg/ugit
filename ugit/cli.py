@@ -86,7 +86,7 @@ def init(args) -> None:
     data.init()
     print(f'Initialized empty ugit repository in {os.getcwd()}/{data.GIT_DIR}')
 
-def hash_object(args):
+def hash_object(args) -> None:
     """
     `Hash function`_ creates a mapping from an input key to an index in hash table.\n
 
@@ -109,7 +109,7 @@ def hash_object(args):
     with open(args.file, 'rb') as f:
         print(data.hash_object(f.read()))
 
-def cat_file(args):
+def cat_file(args) -> None:
     """
     Prints an object by its OID.\n
 
@@ -127,16 +127,16 @@ def cat_file(args):
     sys.stdout.flush()
     sys.stdout.buffer.write(data.get_object(args.object, expected=None))
 
-def write_tree(args):
+def write_tree(args) -> None:
     print(base.write_tree())
 
-def read_tree(args):
+def read_tree(args) -> None:
     base.read_tree(args.tree)
 
-def commit(args):
+def commit(args) -> None:
     print(base.commit(args.message))
 
-def log(args):
+def log(args) -> None:
     for oid in base.iter_commits_and_parents({args.oid}):
         commit = base.get_commit(oid)
 
@@ -144,10 +144,10 @@ def log(args):
         print(textwrap.indent(commit.message, '    '))
         print('')
 
-def checkout(args):
+def checkout(args) -> None:
     base.checkout(args.oid)
 
-def tag(args):
+def tag(args) -> None:
     base.create_tag(args.name, args.oid)
 
 def branch(args) -> None:
@@ -169,8 +169,8 @@ def k(args) -> None:
     # and everything under .ugit/refs.
     for refName, ref in data.iter_refs():
         dot += f'"{refName}" [shape=note]\n'
-        dot += f'"{refName}" -> "{ref}"\n'
-        oids.add(ref)
+        dot += f'"{refName}" -> "{ref.value}"\n'
+        oids.add(ref.value)
 
     for oid in base.iter_commits_and_parents(oids):
         commit = base.get_commit(oid)
